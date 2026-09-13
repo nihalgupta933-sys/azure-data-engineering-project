@@ -141,26 +141,57 @@ SQL scripts for the Gold-layer views are in [`sql_scripts/`](sql_scripts/). Syna
 
 ### Querying the Silver Layer
 
-```sql
-SELECT *
-FROM
-    OPENROWSET(
-        BULK 'https://<storage_account>.dfs.core.windows.net/olist-data/silver/',
-        FORMAT = 'PARQUET'
-    ) AS result1
+Synapse serverless SQL pool reads the Silver-layer Parquet files directly via `OPENROWSET`, without needing to load the data into a dedicated database first. This lets the data be queried immediately as soon as Databricks writes it back to ADLS Gen2.
+
+The exact query used for this step is available in [`sql_scripts/`](sql_scripts/).
+
+### Gold Layer — All Orders View
+
+On top of the Silver-layer query, a `gold.final` view was created inside a new `gold` schema. This view exposes the complete, joined and enriched dataset — every order, regardless of status — as a single queryable object for downstream tools.
+
+Script: [`sql_scripts/`](sql_scripts/)
+
+### Gold Layer — Delivered Orders Only View
+
+A second view, `gold.final2`, was created on top of the same Silver data but filtered down to only orders with `order_status = 'delivered'`. This gives a cleaner, ready-to-use dataset for delivery-performance and fulfillment analysis without needing to repeat the filter logic in every downstream query or report.
+
+Script: [`sql_scripts/`](sql_scripts/)
+
+### Gold / Serving Layer Output
+
+The final curated Parquet files produced by this process are written to the `gold/Serving` path in ADLS Gen2, ready to be picked up by Power BI, Tableau, or Fabric.
+
+![Gold Serving Layer](ss/Screenshot%202026-09-12%20195842.png)
+
+---
+
+## 4️⃣ Visualization
+
+The Gold layer views (`gold.final`, `gold.final2`) can be connected to:
+- **Power BI** — via the built-in Synapse serverless SQL endpoint
+- **Tableau** — via ODBC/JDBC connector to Synapse
+- **Microsoft Fabric** — via direct lake/warehouse integration
+
+---
+
+## 📁 Repository Structure
+
+```
+azure-data-engineering-project/
+├── README.md
+├── DataBricks Code For Transformation.ipynb   # PySpark: cleaning, joins, MongoDB enrichment, aggregation
+├── DataIngestionToSql&MongoDB.ipynb           # Colab: one-time seeding of MySQL + MongoDB source systems
+├── data/                                       # Sample/reference data
+├── sql_scripts/                                # Synapse SQL: OPENROWSET queries, gold.final / gold.final2 views
+└── ss/                                          # Project screenshots (referenced in this README)
 ```
 
-![Silver Layer Query](ss/Screenshot%202026-09-12%20191435.png)
+---
 
-### Gold Layer View — All Orders
+## 🚀 Future Improvements
 
-```sql
-CREATE SCHEMA gold
-CREATE VIEW gold.final
-AS
-SELECT *
-FROM
-    OPENROWSET(
-        BULK 'https://<storage_account>.dfs.core.windows.net/olist-data/silver/',
-        FORMAT = 'PARQUET'
-    ) AS
+- Add CI/CD for ADF pipeline deployment (ARM templates / Azure DevOps)
+- Parameterize Databricks notebooks via Databricks Workflows/Jobs
+- Add data quality checks (Great Expectations / Databricks DQX)
+- Move to incremental loads instead of full refresh
+- Migrate secrets management fully to Azure Key Vault

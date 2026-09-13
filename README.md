@@ -6,7 +6,7 @@ An end-to-end enterprise data engineering platform on **Microsoft Azure**, imple
 
 ## 🏗️ Architecture
 
-![Architecture Diagram](ss/Screenshot%202026-09-05%20221907.png)
+![Architecture Diagram](ss/Architecture%20Diagram.png)
 
 **Flow:**
 1. **Data Sources** — Raw CSVs pulled via HTTP from GitHub + a relational **SQL table**.

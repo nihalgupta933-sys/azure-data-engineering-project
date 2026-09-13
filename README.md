@@ -83,6 +83,23 @@ A **parametrized ADF pipeline** dynamically loops through source tables using `L
 
 ![ADF Pipeline Run](ss/Screenshot%202026-09-07%20182406.png)
 
+### Lookup Configuration — `ForEachInputFor.json`
+
+📄 [`ForEachInputFor.json`](ForEachInputFor.json)
+
+For the CSVs sourced directly from GitHub, the ADF pipeline needs a list of files to fetch and what to name each one. This JSON is the input to the **Lookup** activity, which then drives the **ForEach → Copy Data** loop shown above.
+
+Each entry pairs a raw GitHub file URL with its target file name:
+
+```json
+{
+  "csv_relative_url": "BigDataProjects/refs/heads/main/Project-Brazillian%20Ecommerce/Data/olist_customers_dataset.csv",
+  "file_name": "olist_customers_dataset.csv"
+}
+```
+
+For every entry, Copy Data downloads the file from `csv_relative_url` and writes it into ADLS Gen2 as `file_name` — letting one parametrized pipeline ingest all GitHub-hosted datasets instead of a hardcoded Copy Data activity per file.
+
 ### Bronze Layer in ADLS Gen2
 
 All raw datasets landed in the `olist-data/bronze` container.
@@ -171,5 +188,20 @@ The Gold layer views (`gold.final`, `gold.final2`) can be connected to:
 - **Power BI** — via the built-in Synapse serverless SQL endpoint
 - **Tableau** — via ODBC/JDBC connector to Synapse
 - **Microsoft Fabric** — via direct lake/warehouse integration
+
+---
+
+## 📁 Repository Structure
+
+```
+azure-data-engineering-project/
+├── README.md
+├── DataBricks Code For Transformation.ipynb   # PySpark: cleaning, joins, MongoDB enrichment, aggregation
+├── DataIngestionToSql&MongoDB.ipynb           # Colab: one-time seeding of MySQL + MongoDB source systems
+├── ForEachInputFor.json                        # Lookup input driving the ADF ForEach/Copy Data loop
+├── data/                                       # Sample/reference data
+├── sql_scripts/                                # Synapse SQL: OPENROWSET queries, gold.final / gold.final2 views
+└── ss/                                          # Project screenshots (referenced in this README)
+```
 
 ---

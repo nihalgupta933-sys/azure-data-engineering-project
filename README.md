@@ -174,6 +174,14 @@ A second view, `gold.final2`, was created on top of the same Silver data but fil
 
 Script: [`sql_scripts/`](sql_scripts/)
 
+### Gold Layer View – Query Result
+
+The screenshot below shows the `gold.final` view being created in Synapse serverless SQL pool. It uses `OPENROWSET` to read the Silver-layer Parquet data directly from ADLS Gen2, then exposes the joined dataset for querying.
+
+
+
+![Gold Layer View](ss/Screenshot%202026-09-12%20191718.png)
+
 ### Gold / Serving Layer Output
 
 The final curated Parquet files produced by this process are written to the `gold/Serving` path in ADLS Gen2, ready to be picked up by Power BI, Tableau, or Fabric.
